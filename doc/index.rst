@@ -12,7 +12,7 @@
       .. #currentmodule:: cmcdict
       .. #autofuntion:: __init__
 
-.. include:: intro.rst
+.. include:: README.rst
 
 **Modules**
 
