@@ -4,7 +4,7 @@ Introduction
 What is it?
 -----------
 
-cmcdict is a set of functions that help querying the operational variable dictionnary.
+cmcdict is a set of python functions that help querying the operational variable dictionnary.
 
 cmcdict philosophy
 ------------------
