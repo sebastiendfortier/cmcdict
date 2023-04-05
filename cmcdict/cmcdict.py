@@ -79,7 +79,7 @@ def __parse_opt_dict() -> ET.ElementTree:
 
 
 
-def __check_and_get(var: str, xml_elem: ET.Element, columns: list[str], nomvar_info: dict) -> None:
+def __check_and_get(var: str, xml_elem: ET.Element, columns: list, nomvar_info: dict) -> None:
     """check if the var is in the requested columns and gets the var in the xml element
 
     :param var: variable to search for
@@ -87,7 +87,7 @@ def __check_and_get(var: str, xml_elem: ET.Element, columns: list[str], nomvar_i
     :param xml_elem: xml element to search in
     :type xml_elem: ET.Element
     :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list[str]
+    :type columns: list
     :param nomvar_info: nomvar metadata
     :type nomvar_info: dict
     """
@@ -96,7 +96,7 @@ def __check_and_get(var: str, xml_elem: ET.Element, columns: list[str], nomvar_i
         nomvar_info[var] =  '' if value is None else value.strip()
     
 
-def __check_and_find(var: str, filter: str , xml_elem: ET.Element, columns: list[str], nomvar_info: dict) -> None:
+def __check_and_find(var: str, filter: str , xml_elem: ET.Element, columns: list, nomvar_info: dict) -> None:
     """check if the var is in the requested columns and finds the var in the xml element
 
     :param var: variable to search for
@@ -106,7 +106,7 @@ def __check_and_find(var: str, filter: str , xml_elem: ET.Element, columns: list
     :param xml_elem: xml element to search in
     :type xml_elem: ET.Element
     :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list[str]
+    :type columns: list
     :param nomvar_info: nomvar metadata
     :type nomvar_info: dict
     """
@@ -116,13 +116,13 @@ def __check_and_find(var: str, filter: str , xml_elem: ET.Element, columns: list
 
 
 
-def __process_codes(xml_elem: ET.Element, columns: list[str], nomvar_info: dict) -> None:
+def __process_codes(xml_elem: ET.Element, columns: list, nomvar_info: dict) -> None:
     """processes the codes for a type code in a nomvar
 
     :param xml_elem: xml element to search in
     :type xml_elem: ET.Element
     :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list[str]
+    :type columns: list
     :param nomvar_info: nomvar metadata
     :type nomvar_info: dict
     """
@@ -157,13 +157,13 @@ def __process_codes(xml_elem: ET.Element, columns: list[str], nomvar_info: dict)
 
 
 
-def __process_type(measure_elem_children: list[ET.Element], columns: list[str], nomvar_info: dict) -> None:
+def __process_type(measure_elem_children: list, columns: list, nomvar_info: dict) -> None:
     """processes the type from a metvar element in the op dict
 
     :param measure_elem_children: children of the measure element
-    :type measure_elem_children: list[ET.Element]
+    :type measure_elem_children: list
     :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list[str]
+    :type columns: list
     :return: the type of measure_element, either 'real', 'code', 'integer', 'logical', if exists
     :rtype: str
     """
@@ -177,7 +177,7 @@ def __process_type(measure_elem_children: list[ET.Element], columns: list[str], 
 
 
 @lru_cache(maxsize=None)
-def get_metvar_metadata(nomvar: str, columns: list[str] =['origin', 'date', 'type', 'description_short_en','description_short_fr', 'description_long_en', 'description_long_fr','units', 'min', 'max', 'codes', 'precision', 'magnitude']) -> Union[dict, None]:
+def get_metvar_metadata(nomvar: str, columns: list =['origin', 'date', 'type', 'description_short_en','description_short_fr', 'description_long_en', 'description_long_fr','units', 'min', 'max', 'codes', 'precision', 'magnitude']) -> Union[dict, None]:
     """
     Retrieves metvar metadata information from a CMC optdict XML file for a given nomvar and columns.
 
@@ -185,7 +185,7 @@ def get_metvar_metadata(nomvar: str, columns: list[str] =['origin', 'date', 'typ
     :type nomvar: str
 
     :param columns: The list of columns to retrieve from the optdict XML file. Default is ['origin', 'date', 'type', 'description_short_en','description_short_fr', 'description_long_en', 'description_long_fr','units', 'min', 'max', 'codes', 'precision', 'magnitude'].
-    :type columns: list[str]
+    :type columns: list
 
     :return: A dictionary containing the metadata information for the given nomvar and columns.
     :rtype: dict
@@ -253,7 +253,7 @@ def get_metvar_metadata(nomvar: str, columns: list[str] =['origin', 'date', 'typ
 
 
 @lru_cache(maxsize=None)
-def get_typvar_metadata(nomtype: str, columns: list[str] =['date', 'description_short_en','description_short_fr']) -> Union[dict, None]:
+def get_typvar_metadata(nomtype: str, columns: list =['date', 'description_short_en','description_short_fr']) -> Union[dict, None]:
     """
     Retrieves typvar metadata information from a CMC optdict XML file for a given nomvar and columns.
 
@@ -261,7 +261,7 @@ def get_typvar_metadata(nomtype: str, columns: list[str] =['date', 'description_
     :type nomvar: str
 
     :param columns: The list of columns to retrieve from the optdict XML file. Default is ['date', 'description_short_en','description_short_fr'].
-    :type columns: list[str]
+    :type columns: list
 
     :return: A dictionary containing the metadata information for the given nomvar and columns.
     :rtype: dict
