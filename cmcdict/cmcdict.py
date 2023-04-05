@@ -36,7 +36,7 @@ def __get_dict_file_from_ssm(latest_date_folder: str) -> Path:
     """
     op_dict_file = __KNOWN_CMC_CONSTANTS_DIR / __VAR_DICT_FILE
     env_file_path = __BASE_DIR / latest_date_folder / f"base_{latest_date_folder.stem}_rhel-8-amd64-64/src/environment.sh"
-    if os.path.exists(env_file_path):
+    if env_file_path.exists(): #os.path.exists(env_file_path):
         with open(env_file_path, 'r') as f:
             for line in f:
                 if line.startswith("export CMCCONST="):

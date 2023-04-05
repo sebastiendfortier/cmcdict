@@ -46,7 +46,18 @@ cmcdict.get_typvar_metadata('K')
  'description_short_fr': 'Constantes variées'}
 ```
 
+# Documentation
+
 For more examples and information check out the [documentation](https://web.science.gc.ca/~spst900/cmcdict/master/index.html)
+
+## Gitlab
+
+[gitlab](https://gitlab.science.gc.ca/CMDS/cmcdict)
+
+# SSM
+
+. r.load.dot /fs/ssm/eccc/cmd/cmds/cmcdict/latest
+
 
 # Contributing
 
