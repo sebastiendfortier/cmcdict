@@ -16,11 +16,19 @@ dictionnary.
 Installation
 ============
 
+Gitlab
+------
+
 Use the git repository package:
 
 ::
 
    python3 -m pip install git+http://gitlab.science.gc.ca/CMDS/cmcdict.git
+
+SSM
+---
+
+. r.load.dot /fs/ssm/eccc/cmd/cmds/cmcdict/latest
 
 Requirements
 ============
@@ -70,10 +78,6 @@ Gitlab
 
 `gitlab <https://gitlab.science.gc.ca/CMDS/cmcdict>`__
 
-SSM
-===
-
-. r.load.dot /fs/ssm/eccc/cmd/cmds/cmcdict/latest
 
 Contributing
 ============
