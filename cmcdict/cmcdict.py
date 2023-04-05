@@ -1,7 +1,7 @@
 import os
 import warnings
 import xml.etree.ElementTree as ET
-from functools import cache
+from functools import lru_cache
 from glob import glob
 from pathlib import Path
 from typing import Union
@@ -14,7 +14,7 @@ __KNOWN_CMC_CONSTANTS_DIR = Path('/home/smco502/datafiles/constants')
 __VAR_DICT_FILE = Path('opdict/ops.variable_dictionary.xml')
 __BASE_DIR = Path('/fs/ssm/eccc/cmo/cmoi/base')
 
-@cache
+@lru_cache(maxsize=None)
 def __find_latest_date_folder() -> Union[Path, None]:
     """Finds the latest date folder within the given base directory.
 
@@ -43,7 +43,7 @@ def __get_dict_file_from_ssm(latest_date_folder: str) -> Path:
                     op_dict_file =  Path(line.strip().split("=")[1]) / __VAR_DICT_FILE
     return op_dict_file       
                 
-@cache
+@lru_cache(maxsize=None)
 def __find_ops_variable_dictionary() -> Path:
     """Finds the path to the operational dictionary XML file.
 
@@ -64,7 +64,7 @@ def __find_ops_variable_dictionary() -> Path:
         op_dict_file = Path(constants_dir) / __VAR_DICT_FILE
     return op_dict_file
 
-@cache
+@lru_cache(maxsize=None)
 def __parse_opt_dict() -> ET.ElementTree:
     """Parses the operational dictionary XML file and returns the root element.
 
@@ -176,7 +176,7 @@ def __process_type(measure_elem_children: list[ET.Element], columns: list[str], 
         nomvar_info['type'] = measure_type
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_metvar_metadata(nomvar: str, columns: list[str] =['origin', 'date', 'type', 'description_short_en','description_short_fr', 'description_long_en', 'description_long_fr','units', 'min', 'max', 'codes', 'precision', 'magnitude']) -> Union[dict, None]:
     """
     Retrieves metvar metadata information from a CMC optdict XML file for a given nomvar and columns.
@@ -252,7 +252,7 @@ def get_metvar_metadata(nomvar: str, columns: list[str] =['origin', 'date', 'typ
 
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_typvar_metadata(nomtype: str, columns: list[str] =['date', 'description_short_en','description_short_fr']) -> Union[dict, None]:
     """
     Retrieves typvar metadata information from a CMC optdict XML file for a given nomvar and columns.
