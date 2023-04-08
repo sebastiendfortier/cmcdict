@@ -11,4 +11,7 @@ setup(
     author='Sebastien Fortier',
     author_email='sebastien.fortier@ec.gc.ca',
     packages=find_packages(),
+    package_data = {
+    'cmcdict': ['VERSION'],
+  }
 )
