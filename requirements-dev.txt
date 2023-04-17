@@ -1,0 +1,6 @@
+flake8
+myst_parser
+nbsphinx
+Sphinx
+sphinx_autodoc_typehints
+sphinx_rtd_theme

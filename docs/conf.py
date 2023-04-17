@@ -11,10 +11,9 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import re
 import sys
 sys.path.insert(0, os.path.abspath('..'))
-
-
 
 # -- Project information -----------------------------------------------------
 
@@ -23,8 +22,19 @@ copyright = '2023, ECCC'
 author = 'Sébastien Fortier'
 
 # The full version, including alpha/beta/rc tags
-with open('../VERSION', encoding='utf-8') as f:
-    version = f.read()
+file_ = 'cmcdict/__init__.py'
+filepath = os.path.join(os.path.abspath('..'), file_)
+
+with open(filepath) as fh:
+    contents = fh.read().strip()
+
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              contents, re.M)
+    if version_match:
+        version = version_match.group(1)
+    else:
+        version = 'UNKNOWN'
+
 release = version
 
 
@@ -34,14 +44,13 @@ release = version
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 #       'sphinx.ext.coverage',
-#extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+# extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 # nbsphinx for jupyter notebooks
 # sphinx.ext.viewcode for code links
 # myst_parser for markdown
 extensions = ['sphinx.ext.napoleon',
               'sphinx.ext.doctest',
               'sphinx_autodoc_typehints',
-              'sphinx_gallery.gen_gallery',
               'nbsphinx',
               'sphinx.ext.viewcode',
               'myst_parser']
@@ -55,14 +64,6 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['build', '_build', 'Thumbs.db', '.DS_Store']
-
-
-#options for gallery
-sphinx_gallery_conf = {
-     'examples_dirs': '../examples',   # path to your example scripts
-     'gallery_dirs': 'auto_examples',  # path where to save gallery generated examples
-}
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -86,11 +87,10 @@ html_theme_options = {
 }
 
 html_context = {
-    "display_gitlab": True, # Integrate Gitlab
+    "display_gitlab": True,  # Integrate Gitlab
     "gitlab_host": "gitlab.science.gc.ca",
-    "gitlab_user": "CMDS", # Username
-    "gitlab_repo": "cmcdict", # Repo name
-    "gitlab_version": "master", # Version
-    "conf_py_path": "/doc/", # Path in the checkout to the docs root
+    "gitlab_user": "CMDS",  # Username
+    "gitlab_repo": "cmcdict",  # Repo name
+    "gitlab_version": "master",  # Version
+    "conf_py_path": "/docs/",  # Path in the checkout to the docs root
 }
-
