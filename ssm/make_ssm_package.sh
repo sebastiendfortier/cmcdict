@@ -65,20 +65,20 @@ read -p "Do you want to publish (if you are Sebas)? [Y|N]" -n 1 -r
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    SSM_BASE=/fs/site4/eccc/cmd/w/sbf000/ssm
+    SSM_BASE=/fs/site5/eccc/cmd/w/sbf000/ssm
     echo 'ssm domain is '${SSM_BASE}
     echo 'unpublish old package'
-    ssh sbf000@ppp4 source .profile&&ssm unpublish -d ${SSM_BASE}/${name}/${VERSION} -p ${PKGNAME} -pp ${PLAT}
+    ssh sbf000@ppp5 source .profile&&ssm unpublish -d ${SSM_BASE}/${name}/${VERSION} -p ${PKGNAME} -pp ${PLAT}
     echo 'uninstall old package'
-    ssh sbf000@ppp4 source .profile&&ssm uninstall -d ${SSM_BASE}/master -p ${PKGNAME}
+    ssh sbf000@ppp5 source .profile&&ssm uninstall -d ${SSM_BASE}/master -p ${PKGNAME}
 
     #ssm created -d ${SSM_BASE}/master
     echo 'Installing package to '${SSM_BASE}'/master'
-    ssh sbf000@ppp4 source .profile&&ssm install -d ${SSM_BASE}/master -f /tmp/${USER}/${PKGNAME}.ssm
+    ssh sbf000@ppp5 source .profile&&ssm install -d ${SSM_BASE}/master -f /tmp/${USER}/${PKGNAME}.ssm
     echo 'Create domain '${SSM_BASE}'/'${name}'/'${VERSION}
-    ssh sbf000@ppp4 source .profile&&ssm created -d ${SSM_BASE}/${name}/${VERSION}
+    ssh sbf000@ppp5 source .profile&&ssm created -d ${SSM_BASE}/${name}/${VERSION}
     echo 'Publishing package '${PKGNAME}' to '${SSM_BASE}'/'${name}'/'${VERSION}
-    ssh sbf000@ppp4 source .profile&&ssm publish -d ${SSM_BASE}/master -P ${SSM_BASE}/${name}/${VERSION} -p ${PKGNAME} -pp ${PLAT}
+    ssh sbf000@ppp5 source .profile&&ssm publish -d ${SSM_BASE}/master -P ${SSM_BASE}/${name}/${VERSION} -p ${PKGNAME} -pp ${PLAT}
 
     rm /tmp/${USER}/${PKGNAME}.ssm
 
