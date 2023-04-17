@@ -12,6 +12,8 @@
       .. #currentmodule:: cmcdict
       .. #autofuntion:: __init__
 
+.. include:: README.md
+
 **Modules**
 
 * :doc:`cmcdict`
