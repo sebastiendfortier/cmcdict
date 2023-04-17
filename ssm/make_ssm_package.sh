@@ -45,7 +45,7 @@ mkdir -p ${PKGNAME}/etc/profile.d
 
 PROJECT_ROOT=$ROOT_DIR/${name}
 echo 'Copying files to '${PKGNAME}' directory'
-cp ssm_package_setup.sh ${PKGNAME}/etc/profile.d/${PKGNAME}.sh
+# cp ssm_package_setup.sh ${PKGNAME}/etc/profile.d/${PKGNAME}.sh
 cp control.json ${PKGNAME}/.ssm.d/.
 cp -rf ${PROJECT_ROOT}/* ${PKGNAME}/lib/python/${name}/.
 # cp -rf requirements.txt ${PKGNAME}/share/.
