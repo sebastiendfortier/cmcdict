@@ -29,18 +29,18 @@ before_script:
 make_doc:
   stage: make_doc
   script:
-    - cd doc
+    - cd docs
     - make clean
     - make doc
   artifacts:
     paths:
-      - doc/_build/html
+      - docs/_build/html
 
 
 install_doc:
   stage: install_doc
   script:
-    - cd doc/_build/html
+    - cd docs/_build/html
     - cdir=`pwd`
     - rm -rf ${doc_install_dir}
     - mkdir -p ${doc_install_dir}
@@ -53,7 +53,7 @@ install_latest_doc:
   only:
       - master
   script:
-    - cd doc/_build/html
+    - cd docs/_build/html
     - cdir=`pwd`
     - rm -rf ${latest_doc_install_dir}
     - mkdir -p ${latest_doc_install_dir}

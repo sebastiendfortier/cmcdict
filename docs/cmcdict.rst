@@ -2,5 +2,5 @@
 CMC Dict
 ========
 
-.. automodule:: cmcdict.cmcdict 
+.. automodule:: cmcdict
    :members:
