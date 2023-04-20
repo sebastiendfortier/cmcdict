@@ -26,6 +26,7 @@ import os
 from pathlib import Path
 from typing import Union
 import xml.etree.ElementTree as etree
+import sys
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ __VAR_DICT_FILE = Path(os.environ.get('CMCDICT_VAR_DICT_FILE',
 
 __BASE_DIR = Path(os.environ.get('CMCDICT_BASE_DIR', '/fs/ssm/eccc/cmo/cmoi/base'))
 
-__METADATA_COLUMNS = [
+__METVAR_METADATA_COLUMNS = [
     'origin',
     'date',
     'type',
@@ -59,8 +60,10 @@ __METADATA_COLUMNS = [
     'magnitude'
 ]
 
+__TYPVAR_METADATA_COLUMNS = ['date', 'description_short_en', 'description_short_fr']
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
+@lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
 def __find_latest_date_folder() -> Union[Path, None]:
     """Finds the latest date folder within the given base directory.
 
@@ -94,7 +97,8 @@ def __get_dict_file_from_ssm(latest_date_folder: str) -> Path:
     return op_dict_file
 
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
+@lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
 def __find_ops_variable_dictionary() -> Path:
     """Finds the path to the operational dictionary XML file.
 
@@ -119,7 +123,8 @@ def __find_ops_variable_dictionary() -> Path:
     return op_dict_file
 
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
+@lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
 def __parse_opt_dict() -> etree.ElementTree:
     """Parses the operational dictionary XML file and returns the root element.
 
@@ -234,9 +239,25 @@ def __process_type(measure_elem_children: list, columns: list, nomvar_info: dict
         nomvar_info['type'] = measure_type
 
 
-@lru_cache(maxsize=None)
+
+def __validate_columns_param(columns, allowed_columns):
+    if not isinstance(columns, list) or len(columns) < 1:
+        raise ValueError('Columns must be a list of at least 1 element')
+
+    if 'nomvar' in columns:
+        raise ValueError('nomvar must not be in columns')
+
+    invalid_columns = set(columns) - set(allowed_columns)
+
+    if invalid_columns:
+        invalid_columns2 = ', '.join(sorted(invalid_columns))
+        raise ValueError(f'Invalid columns: {invalid_columns2}')
+    
+
+# @lru_cache(maxsize=None)
+@lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
 def get_metvar_metadata(nomvar: str,
-                        columns: list = __METADATA_COLUMNS) -> Union[dict, None]:  # noqa
+                        columns: list = __METVAR_METADATA_COLUMNS) -> Union[dict, None]:  # noqa
     """
     Retrieves metvar metadata information from a CMC optdict XML file for a
     given nomvar and columns.
@@ -260,33 +281,7 @@ def get_metvar_metadata(nomvar: str,
                         invalid column names.
     """
 
-    allowed_columns = [
-        'origin',
-        'date',
-        'type',
-        'description_short_en',
-        'description_short_fr',
-        'description_long_en',
-        'description_long_fr',
-        'units',
-        'min',
-        'max',
-        'codes',
-        'precision',
-        'magnitude'
-    ]
-
-    if not isinstance(columns, list) or len(columns) < 1:
-        raise ValueError('Columns must be a list of at least 1 element')
-
-    if 'nomvar' in columns:
-        raise ValueError('nomvar must not be in columns')
-
-    invalid_columns = set(columns) - set(allowed_columns)
-
-    if invalid_columns:
-        invalid_columns2 = ', '.join(sorted(invalid_columns))
-        raise ValueError(f'Invalid columns: {invalid_columns2}')
+    __validate_columns_param(columns, __METVAR_METADATA_COLUMNS)
 
     nomvar_info = {'nomvar': nomvar}
 
@@ -336,8 +331,11 @@ def get_metvar_metadata(nomvar: str,
     return nomvar_info
 
 
-@lru_cache(maxsize=None)
-def get_typvar_metadata(nomtype: str, columns: list = ['date', 'description_short_en', 'description_short_fr']) -> Union[dict, None]:  # noqa
+
+
+# @lru_cache(maxsize=None)
+@lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
+def get_typvar_metadata(nomtype: str, columns: list = __TYPVAR_METADATA_COLUMNS) -> Union[dict, None]:  # noqa
     """
     Retrieves typvar metadata information from a CMC optdict XML file
     for a given nomvar and columns.
@@ -361,15 +359,13 @@ def get_typvar_metadata(nomtype: str, columns: list = ['date', 'description_shor
                         invalid column names.
     """
 
-    allowed_columns = ['date', 'description_short_en', 'description_short_fr']
-
     if not isinstance(columns, list) or len(columns) < 1:
         raise ValueError('Columns must be a list of at least 1 element')
 
     if 'nomtype' in columns:
         raise ValueError('nomtype must not be in columns')
 
-    invalid_columns = set(columns) - set(allowed_columns)
+    invalid_columns = set(columns) - set(__TYPVAR_METADATA_COLUMNS)
     if invalid_columns:
         invalid_columns2 = ', '.join(sorted(invalid_columns))
         raise ValueError(f'Invalid columns: {invalid_columns2}')
@@ -397,3 +393,4 @@ def get_typvar_metadata(nomtype: str, columns: list = ['date', 'description_shor
         return None
 
     return typvar_info
+
