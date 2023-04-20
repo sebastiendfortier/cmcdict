@@ -9,6 +9,7 @@ variables:
 
 
 stages:
+  - run_unittest
   - make_doc
   - install_doc
 
@@ -24,6 +25,12 @@ before_script:
   - . $ARMNLIB_SHARE/check_profile_1.1.0
   - . ssmuse-sh -p /fs/ssm/eccc/cmd/cmds/env/python/py39_2022.09.29_all
 
+
+run_unittest:
+  stage: run_unittest
+  script:
+    - cd test
+    - python3 -m pytest -vrf 
 
 
 make_doc:
