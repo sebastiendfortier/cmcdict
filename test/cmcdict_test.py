@@ -2,65 +2,66 @@
 import pytest
 import cmcdict
 
+pytestmark = [pytest.mark.unit_tests]
 
 def test_1():
     """nomvar wrong type """
-    result = cmcdict.__get_metvar_metadata__(2,['description_short_en'])
+    result = cmcdict.get_metvar_metadata(2,['description_short_en'])
     assert(result is None)
 
 
 def test_2():
     """nomvar None"""
-    result = cmcdict.__get_metvar_metadata__(nomvar = None, columns = cmcdict.__METVAR_METADATA_COLUMNS)
+    result = cmcdict.get_metvar_metadata(nomvar = None, columns = cmcdict.__METVAR_METADATA_COLUMNS)
     assert(result is None)
 
 
 def test_3():
     """nomvar valid"""
-    result = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = cmcdict.__METVAR_METADATA_COLUMNS)
+    result = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = cmcdict.__METVAR_METADATA_COLUMNS)
     assert(result == {'nomvar': 'TT', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'Air temperature', 'description_short_fr': "Température de l'air", 'description_long_en': '', 'description_long_fr': '', 'units': '°C', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
 
 def test_4():
     """nomvar valid does not exist"""
-    result = cmcdict.__get_metvar_metadata__(nomvar = '?*', columns = cmcdict.__METVAR_METADATA_COLUMNS)
+    result = cmcdict.get_metvar_metadata(nomvar = '?*', columns = cmcdict.__METVAR_METADATA_COLUMNS)
     assert(result is None)
 
 def test_5():
     """columns wrong type"""
     with pytest.raises(ValueError):
-        _ = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = 1)
+        _ = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = 1)
 
 
 def test_6():
     """columns None"""
     with pytest.raises(ValueError):
-        _ = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = None)
+        _ = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = None)
     
 def test_7():
     """columns valid list"""
-    result = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = cmcdict.__METVAR_METADATA_COLUMNS)
+    result = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = cmcdict.__METVAR_METADATA_COLUMNS)
     assert(result == {'nomvar': 'TT', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'Air temperature', 'description_short_fr': "Température de l'air", 'description_long_en': '', 'description_long_fr': '', 'units': '°C', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
 
 def test_8():
     """columns empty list"""
     with pytest.raises(ValueError):
-        _ = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = [])
+        _ = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = [])
 
 
 def test_9():
     """columns list wrong type"""
     with pytest.raises(TypeError):
-        _ = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = [1])
+        _ = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = [1])
 
 def test_10():
     """columns list invalid column"""
     with pytest.raises(ValueError):
-        _ = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = ['1'])
+        _ = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = ['1'])
 
 def test_11():
     """columns list with nomvar """
     with pytest.raises(ValueError):
-        _ = cmcdict.__get_metvar_metadata__(nomvar = 'TT', columns = ['nomvar', 'units'])
+        _ = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = ['nomvar', 'units'])
     
 
 # # ______________________________________________________________________
