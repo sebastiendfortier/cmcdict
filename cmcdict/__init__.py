@@ -17,7 +17,7 @@
 #
 #######################################################################
 
-__version__ = '2023.04.05'
+__version__ = '2023.05.18'
 
 from functools import lru_cache
 from glob import glob
@@ -293,37 +293,38 @@ def get_metvar_metadata(nomvar: str,
     if cmc_dict_xml_root is None:
         raise OpDictNotFoundException()
 
-    nomvar_metvar = cmc_dict_xml_root.find(f".//metvar[nomvar='{nomvar}']")
+    nomvar_metvar_list = cmc_dict_xml_root.findall(f".//metvar[nomvar='{nomvar}']")
+    if len(nomvar_metvar_list):
+        for nomvar_metvar in nomvar_metvar_list:
+            if nomvar_metvar is not None and nomvar_metvar.get('usage') == 'current':
 
-    if nomvar_metvar is not None and nomvar_metvar.get('usage') == 'current':
+                __check_and_get('origin', nomvar_metvar, columns, nomvar_info)
 
-        __check_and_get('origin', nomvar_metvar, columns, nomvar_info)
+                __check_and_get('date', nomvar_metvar, columns, nomvar_info)
 
-        __check_and_get('date', nomvar_metvar, columns, nomvar_info)
+                measure_elem = nomvar_metvar.findall(".//measure/*")
 
-        measure_elem = nomvar_metvar.findall(".//measure/*")
+                __check_and_find('precision', ".//precision", measure_elem[0], columns, nomvar_info)
 
-        __check_and_find('precision', ".//precision", measure_elem[0], columns, nomvar_info)
+                __check_and_find('magnitude', ".//magnitude", measure_elem[0], columns, nomvar_info)
 
-        __check_and_find('magnitude', ".//magnitude", measure_elem[0], columns, nomvar_info)
+                __process_type(measure_elem, columns, nomvar_info)
 
-        __process_type(measure_elem, columns, nomvar_info)
+                __process_codes(measure_elem[0], columns, nomvar_info)
 
-        __process_codes(measure_elem[0], columns, nomvar_info)
+                __check_and_find('description_short_en', ".//short[@lang='en']", nomvar_metvar, columns, nomvar_info)
 
-        __check_and_find('description_short_en', ".//short[@lang='en']", nomvar_metvar, columns, nomvar_info)
+                __check_and_find('description_short_fr', ".//short[@lang='fr']", nomvar_metvar, columns, nomvar_info)
 
-        __check_and_find('description_short_fr', ".//short[@lang='fr']", nomvar_metvar, columns, nomvar_info)
+                __check_and_find('description_long_en', ".//long[@lang='en']", nomvar_metvar, columns, nomvar_info)
 
-        __check_and_find('description_long_en', ".//long[@lang='en']", nomvar_metvar, columns, nomvar_info)
+                __check_and_find('description_long_fr', ".//long[@lang='fr']", nomvar_metvar, columns, nomvar_info)
 
-        __check_and_find('description_long_fr', ".//long[@lang='fr']", nomvar_metvar, columns, nomvar_info)
+                __check_and_find('units', ".//units", nomvar_metvar, columns, nomvar_info)
 
-        __check_and_find('units', ".//units", nomvar_metvar, columns, nomvar_info)
+                __check_and_find('min', ".//min", nomvar_metvar, columns, nomvar_info)
 
-        __check_and_find('min', ".//min", nomvar_metvar, columns, nomvar_info)
-
-        __check_and_find('max', ".//max", nomvar_metvar, columns, nomvar_info)
+                __check_and_find('max', ".//max", nomvar_metvar, columns, nomvar_info)
 
     else:
         return None

@@ -129,3 +129,15 @@ def test_21():
     with pytest.raises(ValueError):
         _ = cmcdict.get_typvar_metadata(nomtype = 'R', columns = ['nomvar', 'units'])
 
+
+def test_22():
+    """test current vars"""
+    with open('current_vars.txt', 'r') as f:
+        vars = f.readlines()
+
+    vars = [s.replace('\n','') for s in vars]
+
+    for v in vars:
+        data = cmcdict.get_metvar_metadata(nomvar = v, columns = ['units', 'description_short_en'])
+        if data is None:
+            assert(False)
