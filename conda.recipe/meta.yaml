@@ -26,5 +26,5 @@ about:
   summary: 'MSC python library to work with the CMC operational dictionary'
 
 source:
-  path: ../../cmcdict
+  path: ../
 
