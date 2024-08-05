@@ -19,7 +19,7 @@ def test_2():
 def test_3():
     """nomvar valid"""
     result = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = cmcdict.__METVAR_METADATA_COLUMNS)
-    assert(result == {'nomvar': 'TT', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'Air temperature', 'description_short_fr': "Température de l'air", 'description_long_en': '', 'description_long_fr': '', 'units': '°C', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
+    assert(result == {'nomvar': 'TT', 'usage': 'current', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'Air temperature', 'description_short_fr': "Température de l'air", 'description_long_en': '', 'description_long_fr': '', 'units': '°C', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
 
 def test_4():
     """nomvar valid does not exist"""
@@ -40,7 +40,7 @@ def test_6():
 def test_7():
     """columns valid list"""
     result = cmcdict.get_metvar_metadata(nomvar = 'TT', columns = cmcdict.__METVAR_METADATA_COLUMNS)
-    assert(result == {'nomvar': 'TT', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'Air temperature', 'description_short_fr': "Température de l'air", 'description_long_en': '', 'description_long_fr': '', 'units': '°C', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
+    assert(result == {'nomvar': 'TT', 'usage': 'current', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'Air temperature', 'description_short_fr': "Température de l'air", 'description_long_en': '', 'description_long_fr': '', 'units': '°C', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
 
 def test_8():
     """columns empty list"""
@@ -141,3 +141,18 @@ def test_22():
         data = cmcdict.get_metvar_metadata(nomvar = v, columns = ['units', 'description_short_en'])
         if data is None:
             assert(False)
+
+def test_23():
+    """test nomvar with a deprecated usage, success with allow all usages"""
+    result = cmcdict.get_metvar_metadata(nomvar = 'UD', columns = cmcdict.__METVAR_METADATA_COLUMNS, usages= cmcdict.__METVAR_USAGES)
+    assert(result == {'nomvar': 'UD', 'usage': 'deprecated', 'origin': '', 'date': '2021-06-30', 'type': 'real', 'description_short_en': 'U-component of the wind at anemometer level', 'description_short_fr': "Composante U du vent au niveau de l'anémomètre", 'description_long_en': 'Note, the variable UDST (IP1=1195) should be used instead of UD.', 'description_long_fr': 'Noter que la variable UDST (IP1=1195) devrait être utilisée au lieu de UD.', 'units': 'm/s', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})
+
+def test_24():
+    """test nomvar 'UD' with only 'current' usage allowd, failure UD has 'deprecated' usage. result is a dictionnary with 'None' for all keys."""
+    result = cmcdict.get_metvar_metadata(nomvar = 'UD', columns = cmcdict.__METVAR_METADATA_COLUMNS, usages = ['current'])
+    assert(result == {'nomvar': 'UD', 'usage': None, 'origin': None, 'date': None, 'type': None, 'description_short_en': None, 'description_short_fr': None, 'description_long_en': None, 'description_long_fr': None, 'units': None, 'min': None, 'max': None, 'codes': None, 'precision': None, 'magnitude': None})
+
+def test_25():
+    """test nomvar with only 'current' usage allowed, success UU has current usage"""
+    result = cmcdict.get_metvar_metadata(nomvar = 'UU', columns = cmcdict.__METVAR_METADATA_COLUMNS, usages = ['current'])
+    assert(result == {'nomvar': 'UU', 'usage': 'current', 'origin': '', 'date': '', 'type': 'real', 'description_short_en': 'U-component of the wind (along the X-axis of the grid)', 'description_short_fr': "Composante U du vent (selon l'axe des X sur la grille)", 'description_long_en': '', 'description_long_fr': '', 'units': 'kts', 'min': '', 'max': '', 'codes': None, 'precision': '', 'magnitude': ''})

@@ -17,7 +17,7 @@
 #
 #######################################################################
 
-__version__ = '2023.05.18'
+__version__ = '2024.07.22'
 
 from functools import lru_cache
 from glob import glob
@@ -45,6 +45,7 @@ __VAR_DICT_FILE = Path(os.environ.get('CMCDICT_VAR_DICT_FILE',
 __BASE_DIR = Path(os.environ.get('CMCDICT_BASE_DIR', '/fs/ssm/eccc/cmo/cmoi/base'))
 
 __METVAR_METADATA_COLUMNS = [
+    'usage',
     'origin',
     'date',
     'type',
@@ -58,6 +59,14 @@ __METVAR_METADATA_COLUMNS = [
     'codes',
     'precision',
     'magnitude'
+]
+
+__METVAR_USAGES = [
+    'obsolete',
+    'current',
+    'future',
+    'incomplete',
+    'deprecated'
 ]
 
 __TYPVAR_METADATA_COLUMNS = ['date', 'description_short_en', 'description_short_fr']
@@ -111,12 +120,11 @@ def __find_ops_variable_dictionary() -> Path:
     op_dict_file = __KNOWN_CMC_CONSTANTS_DIR / __VAR_DICT_FILE
 
     if constants_dir == '':
-        LOGGER.warning('cmoi base ssm package not loaded, attemting to find definition elsewhere')
+        LOGGER.warning('CMCCONST not defined, the cmoi base ssm package is probably not loaded. Attempting to find dictionary definition elsewhere')
         latest_date_folder = __find_latest_date_folder()
-        if not latest_date_folder:
-            return op_dict_file
-
-        op_dict_file = __get_dict_file_from_ssm(latest_date_folder)
+        if latest_date_folder:
+            op_dict_file = __get_dict_file_from_ssm(latest_date_folder)
+        LOGGER.warning(f"Dictionary: '{op_dict_file}'")
     else:
         op_dict_file = Path(constants_dir) / __VAR_DICT_FILE
 
@@ -252,12 +260,24 @@ def __validate_columns_param(columns, allowed_columns):
     if invalid_columns:
         invalid_columns2 = ', '.join(sorted(invalid_columns))
         raise ValueError(f'Invalid columns: {invalid_columns2}')
-    
+
+
+def __validate_usages_param(usages, allowed_usages):
+    if not isinstance(usages, list) or len(usages) < 1:
+        raise ValueError('usages must be a list of at least 1 element')
+
+    invalid_usages = set(usages) - set(allowed_usages)
+
+    if invalid_usages:
+        invalid_usages2 = ', '.join(sorted(invalid_usages))
+        raise ValueError(f'Invalid usages: {invalid_usages2}')
+
 
 # @lru_cache(maxsize=None)
 @lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
 def get_metvar_metadata(nomvar: str,
-                        columns: list = __METVAR_METADATA_COLUMNS) -> Union[dict, None]:  # noqa
+                        columns: list = __METVAR_METADATA_COLUMNS,
+                        usages: list = __METVAR_USAGES) -> Union[dict, None]:  # noqa
     """
     Retrieves metvar metadata information from a CMC optdict XML file for a
     given nomvar and columns.
@@ -266,11 +286,16 @@ def get_metvar_metadata(nomvar: str,
     :type nomvar: str
 
     :param columns: The list of columns to retrieve from the optdict XML file.
-                    Default is ['origin', 'date', 'type',
+                    Default is ['usage', 'origin', 'date', 'type',
                     'description_short_en','description_short_fr',
                     'description_long_en', 'description_long_fr',
                     'units', 'min', 'max', 'codes', 'precision', 'magnitude'].
     :type columns: list
+
+    :param usages: Filter by usage state in the optdict XML file.
+                    Default is ['obsolete','current','future','incomplete',
+                    'deprecated'].
+    :type usages: list
 
     :return: A dictionary containing the metadata information for the given
              nomvar and columns.
@@ -282,6 +307,8 @@ def get_metvar_metadata(nomvar: str,
     """
 
     __validate_columns_param(columns, __METVAR_METADATA_COLUMNS)
+
+    __validate_usages_param(usages, __METVAR_USAGES)
 
     nomvar_info = {'nomvar': nomvar}
 
@@ -296,7 +323,9 @@ def get_metvar_metadata(nomvar: str,
     nomvar_metvar_list = cmc_dict_xml_root.findall(f".//metvar[nomvar='{nomvar}']")
     if len(nomvar_metvar_list):
         for nomvar_metvar in nomvar_metvar_list:
-            if nomvar_metvar is not None and nomvar_metvar.get('usage') == 'current':
+            if nomvar_metvar is not None and nomvar_metvar.get('usage') in usages:
+
+                __check_and_get('usage', nomvar_metvar, columns, nomvar_info)
 
                 __check_and_get('origin', nomvar_metvar, columns, nomvar_info)
 
