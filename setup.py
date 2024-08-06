@@ -31,19 +31,12 @@ def read(filename, encoding='utf-8'):
         contents = fh.read().strip()
     return contents
 
-
 def get_package_version():
-    """get version from top-level package init"""
-
-    version_file = read('cmcdict/__init__.py')
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError('Unable to find version string.')
-
-
+    about = {}
+    with open(Path(__file__).resolve().parent / 'cmcdict' / '__init__.py', 'r', encoding='utf-8') as f:
+        exec(f.read(), about)
+    return about['__version__']
+    
 LONG_DESCRIPTION = read('README.md')
 
 DESCRIPTION = 'Python library to work with the CMC operational dictionary'
