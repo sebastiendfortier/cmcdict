@@ -13,6 +13,10 @@
 import os
 import re
 import sys
+import cmcdict
+version = cmcdict.__version__
+release = version
+
 sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
@@ -20,23 +24,6 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'cmcdict'
 copyright = '2023, ECCC'
 author = 'Sébastien Fortier'
-
-# The full version, including alpha/beta/rc tags
-file_ = 'cmcdict/__init__.py'
-filepath = os.path.join(os.path.abspath('..'), file_)
-
-with open(filepath) as fh:
-    contents = fh.read().strip()
-
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              contents, re.M)
-    if version_match:
-        version = version_match.group(1)
-    else:
-        version = 'UNKNOWN'
-
-release = version
-
 
 # -- General configuration ---------------------------------------------------
 
