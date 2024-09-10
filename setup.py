@@ -22,20 +22,21 @@ import re
 from setuptools import find_packages, setup
 
 
-def read(filename, encoding='utf-8'):
-    """read file contents"""
-
-    fullpath = Path(__file__).resolve().parent / filename
-
-    with fullpath.open() as fh:
-        contents = fh.read().strip()
-    return contents
-
 def get_package_version():
-    about = {}
-    with open(Path(__file__).resolve().parent / 'cmcdict' / '__init__.py', 'r', encoding='utf-8') as f:
-        exec(f.read(), about)
-    return about['__version__']
+    init_py = Path(__file__).resolve().parent / "cmcdict" / "__init__.py"
+    version_regex = r"__version__\s*=\s*['\"]([^'\"]*)['\"]"
+    try:
+        with open(init_py, "r", encoding="utf-8") as f:
+            content = f.read()
+            match = re.search(version_regex, content)
+            if match:
+                return match.group(1)
+            else:
+                print("Warning: __version__ not found in __init__.py")
+                return "unknown"
+    except Exception as e:
+        print(f"Error reading version from __init__.py: {e}")
+        return "unknown"
     
 LONG_DESCRIPTION = read('README.md')
 
