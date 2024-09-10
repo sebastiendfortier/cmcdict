@@ -1,10 +1,6 @@
-{% set name = load_setup_py_data()['name'] %}
-{% set version = load_setup_py_data()['version'] %}
-{% set url = load_setup_py_data()['url'] %}
-{% set summary = load_setup_py_data()['description'] %}
 
 package:
-  name: {{ name|lower }}
+  name: cmcdict
   version: {{ version }}
 
 
@@ -22,14 +18,14 @@ requirements:
 
 test:
   imports:
-    - {{ name|lower }}
+    - cmcdict
 
 about:
-  home: {{ url }}
+  home: https://gitlab.science.gc.ca/CMDS/cmcdict
   license: LGPL-3.0
   license_family: LGPL
   license_file: LICENSE
-  summary: {{ summary }}
+  summary: 'Python library to work with the CMC operational dictionary'
 
 source:
   path: ../
