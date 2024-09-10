@@ -37,8 +37,11 @@ def get_package_version():
     except Exception as e:
         print(f"Error reading version from __init__.py: {e}")
         return "unknown"
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
     
-LONG_DESCRIPTION = read('README.md')
+LONG_DESCRIPTION = long_description
 
 DESCRIPTION = 'Python library to work with the CMC operational dictionary'
 
