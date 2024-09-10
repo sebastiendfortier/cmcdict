@@ -13,6 +13,9 @@
 import os
 import re
 import sys
+
+sys.path.append(str(__import__('pathlib').Path(__file__).resolve().parent.parent))
+
 import cmcdict
 version = cmcdict.__version__
 release = version
@@ -69,7 +72,7 @@ html_static_path = ['_static']
 html_logo = "cmcdict_logo.png"
 html_theme_options = {
     'logo_only': True,
-    'display_version': False,
+    'display_version': True,
     'vcs_pageview_mode': 'blob'
 }
 
