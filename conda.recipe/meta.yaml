@@ -1,4 +1,3 @@
-
 package:
   name: cmcdict
   version: 2024.07.22
@@ -29,4 +28,3 @@ about:
 
 source:
   path: ../
-
