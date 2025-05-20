@@ -28,15 +28,6 @@ pixi install --environment dev
 
 ```
 
-### Via pip in a virtualenv
-
-```bash
-python -m venv cmcdict-venv
-cd cmcdict-venv
-. bin/activate
-pip3 install https://gitlab.science.gc.ca/CMDS/cmcdict/repository/master/archive.zip
-```
-
 ### Via SSM Bundle
 
 To use the latest bundle version:
@@ -131,7 +122,7 @@ pixi run get-version
 pixi run conda-build
 
 # Verify conda package version
-conda list cmcdict
+pixi list
 ```
 
 No other files need to be modified when updating the version.
@@ -241,8 +232,8 @@ make test-py38
 # Test package with Python 3.13
 make test-py313
 
-# Test with both Python versions
-make test-both
+# Test with all Python versions
+make test-all
 
 # Clean all build artifacts
 make clean
