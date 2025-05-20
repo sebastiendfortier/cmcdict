@@ -93,7 +93,7 @@ ENV/
 # Spyder project settings
 .spyderproject
 .spyproject
-
+.pixi
 # Rope project settings
 .ropeproject
 
@@ -103,3 +103,8 @@ ENV/
 # mypy
 .mypy_cache/
 
+ops.variable_dictionary.xml
+test_cmcdict.sh
+test_cmcdict2.sh
+
+.ruff_cache

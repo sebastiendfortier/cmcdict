@@ -1,0 +1,28 @@
+# Base configuration
+line-length = 120
+target-version = "py38"
+
+# Lint-specific settings (moved to lint section)
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+    "B",   # flake8-bugbear
+]
+
+# Ignore specific rules
+ignore = [
+    'E501', # E501 Line too long
+    'F403', # F403 `from . import *` used; unable to detect undefined names
+    'E402' # E402 Module level import not at top of file
+]
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[format]
+quote-style = "double"  # Change to "single" if you prefer
+indent-style = "space"
+line-ending = "auto"
