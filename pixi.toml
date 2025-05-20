@@ -37,7 +37,7 @@ description = "Check version"
 cmd = "python -c \"import cmcdict; print(cmcdict.__version__)\""
 
 [tasks.conda-build]
-cmd = "rattler-build build --recipe-dir conda.recipe --output-dir /tmp/conda-build -c fortiers -c conda-forge"
+cmd = "rm -rf /tmp/conda-build && rattler-build build --recipe-dir conda.recipe --output-dir /tmp/conda-build -c fortiers -c conda-forge"
 
 [tasks.render]
 cmd = "conda-smithy rerender"
