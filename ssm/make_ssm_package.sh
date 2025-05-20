@@ -17,12 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #######################################################################
-
+set -x
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 ROOT_DIR=${DIR:0:${#DIR}-3}
 echo $ROOT_DIR
 cd ${DIR}
-VERSION=$(cat ${ROOT_DIR}cmcdict/__init__.py | grep __version__ | awk -F\' '{print $2}')
+VERSION=$(cat ${ROOT_DIR}cmcdict/__init__.py | grep __version__ | awk -F'"' '{print $2}')
 PLAT=all
 
 name=cmcdict
@@ -63,6 +63,11 @@ echo 'Copying files to '${PKGNAME}' directory'
 # cp ssm_package_setup.sh ${PKGNAME}/etc/profile.d/${PKGNAME}.sh
 cp control.json ${PKGNAME}/.ssm.d/.
 cp -rf ${PROJECT_ROOT}/* ${PKGNAME}/lib/python/${name}/.
+
+# Copy data directory with parquet files
+mkdir -p ${PKGNAME}/lib/python/${name}/data
+cp -rf ${ROOT_DIR}/data/*.parquet ${PKGNAME}/lib/python/${name}/data/ 2>/dev/null || true
+
 # cp -rf requirements.txt ${PKGNAME}/share/.
 echo 'Creating ssm archive '${PKGNAME}'.ssm'
 tar -zcvf ${PKGNAME}.ssm ${PKGNAME}
