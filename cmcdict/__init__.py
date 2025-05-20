@@ -19,6 +19,7 @@
 
 __version__ = "2025.03.00"
 
+import importlib.resources
 import logging
 import os
 import sys
@@ -54,7 +55,7 @@ class MultipleDefinitionsException(Exception):
     pass
 
 
-__VAR_DICT_FILE = "opdict/ops.variable_dictionary.xml"
+__VAR_DICT_FILE = "ops.variable_dictionary.xml"
 
 __METVAR_METADATA_COLUMNS = [
     "usage",
@@ -79,55 +80,68 @@ __TYPVAR_METADATA_COLUMNS = ["date", "description_short_en", "description_short_
 
 
 @lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
-def __find_ops_variable_dictionary() -> Optional[Path]:
+def _find_ops_variable_dictionary() -> Optional[Path]:
     """Find the operational dictionary XML file.
+
+    This function searches for the dictionary file in the following locations:
+    1. CMCCONST environment variable path
+    2. Default system path (/home/smco502/datafiles/constants)
+    3. Package's data directory
 
     Returns:
         Optional[Path]: Path to the XML dictionary file if found, None otherwise.
 
-    The function will try to find the dictionary in the following order:
-    1. CMCCONST environment variable path
-    2. Default system path (/home/smco502/datafiles/constants)
-    3. Package's data directory
+    Raises:
+        OpDictNotFoundException: If the dictionary file is not found in any location.
     """
     try:
         # Check if CMCCONST is defined
         if "CMCCONST" in os.environ:
             base_path = Path(os.environ["CMCCONST"])
-            dict_file = base_path / __VAR_DICT_FILE
+            dict_file = base_path / "opdict" / __VAR_DICT_FILE
             if dict_file.exists():
                 LOGGER.info(f"Found dictionary file at {dict_file}")
                 return dict_file
 
         # Try default system path
-        base_path = Path("/home/smco502/datafiles/constants")
+        base_path = Path("/home/smco502/datafiles/constants/optdict")
         dict_file = base_path / __VAR_DICT_FILE
         if dict_file.exists():
             LOGGER.info(f"Found dictionary file at {dict_file}")
             return dict_file
 
         # Try package's data directory as fallback
-        package_data_path = Path(__file__).parent.parent / "data" / __VAR_DICT_FILE
-        if package_data_path.exists():
-            LOGGER.info(f"Found dictionary file in package data at {package_data_path}")
-            return package_data_path
+        with importlib.resources.path("cmcdict.data", __VAR_DICT_FILE) as data_path:
+            package_data_path = Path(data_path)
+            print(package_data_path)
+            if package_data_path.exists():
+                LOGGER.info(f"Found dictionary file in package data at {package_data_path}")
+                return package_data_path
 
         raise OpDictNotFoundException("Dictionary file not found in any location")
 
     except Exception as e:
         if isinstance(e, OpDictNotFoundException):
             raise
-        LOGGER.warning(f"Error finding operational dictionary: {str(e)}")
+        LOGGER.error(f"Error finding operational dictionary: {str(e)}")
         return None
 
 
 # @lru_cache(maxsize=None)
 @lru_cache(maxsize=0 if "pytest" in sys.modules else 256)
-def __parse_opt_dict() -> Optional[etree.Element]:
-    """Parse the operational dictionary XML file"""
+def _parse_opt_dict() -> Optional[etree.Element]:
+    """Parse the operational dictionary XML file.
+
+    Returns:
+        Optional[etree.Element]: Root element of the parsed XML tree if successful, None otherwise.
+
+    Note:
+        This function is cached using lru_cache for performance optimization.
+        Cache is disabled during pytest execution.
+    """
     try:
         # Find the dictionary file
-        dict_file = __find_ops_variable_dictionary()
+        dict_file = _find_ops_variable_dictionary()
         if dict_file is None:
             LOGGER.warning("Could not find operational dictionary file")
             return None
@@ -150,181 +164,32 @@ def __parse_opt_dict() -> Optional[etree.Element]:
         return None
 
 
-def __check_and_get(var: str, xml_elem: etree.Element, columns: list, nomvar_info: dict) -> None:
-    """check if the var is in the requested columns and gets the var in the xml element
-
-    :param var: variable to search for
-    :type var: str
-    :param xml_elem: xml element to search in
-    :type xml_elem: etree.Element
-    :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list
-    :param nomvar_info: nomvar metadata
-    :type nomvar_info: dict
-    """
-
-    if var in columns:
-        value = xml_elem.get(var)
-        nomvar_info[var] = "" if value is None else value.strip()
-
-
-def __check_and_find(var: str, filter_: str, xml_elem: etree.Element, columns: list, nomvar_info: dict) -> None:
-    """check if the var is in the requested columns and finds the var in the xml element
-
-    :param var: variable to search for
-    :type var: str
-    :param filter: xml serach filter
-    :type filter: str
-    :param xml_elem: xml element to search in
-    :type xml_elem: etree.Element
-    :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list
-    :param nomvar_info: nomvar metadata
-    :type nomvar_info: dict
-    """
-
-    if var in columns:
-        value = xml_elem.find(filter_)
-        nomvar_info[var] = "" if value is None or str(value.text).strip() == "" else str(value.text).strip()
-
-
-def __process_codes(xml_elem: etree.Element, columns: list, nomvar_info: dict) -> None:
-    """processes the codes for a type code in a nomvar
-
-    :param xml_elem: xml element to search in
-    :type xml_elem: etree.Element
-    :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list
-    :param nomvar_info: nomvar metadata
-    :type nomvar_info: dict
-    """
-
-    if "codes" in columns:
-        # Initialize codes as None
-        nomvar_info["codes"] = None
-
-        # if type_element exists and its tag is either 'code' or 'logical'
-        if xml_elem is not None and xml_elem.tag in ("code", "logical"):
-            # iterate over the value elements
-            values = []
-
-            for value_element in xml_elem.findall("value"):
-                values.append(f"{value_element.text}")
-
-            meanings_with_lang = [i.text for i in xml_elem.findall("meaning[@lang='en']")]
-            meanings_without_lang = [i.text for i in xml_elem.findall("meaning")]
-
-            codes = []
-            if len(values) == len(meanings_with_lang):
-                for a, b in zip(values, meanings_with_lang):
-                    codes.append(f"{a}:{b}")
-            elif len(values) == len(meanings_without_lang) / 2:
-                half_index = len(meanings_without_lang) // 2
-                first_half = meanings_without_lang[:half_index]
-                second_half = meanings_without_lang[half_index:]
-                for a, b, c in zip(values, first_half, second_half):
-                    codes.append(f"{a}:{b}/{c}")
-            elif len(values) == len(meanings_without_lang):
-                codes = [f"{a}:{b}" for a, b in zip(values, meanings_without_lang)]
-
-            if codes:
-                nomvar_info["codes"] = ";".join(codes)
-
-
-def __process_type(measure_elem_children: list, columns: list, nomvar_info: dict) -> None:
-    """processes the type from a metvar element in the op dict
-
-    :param measure_elem_children: children of the measure element
-    :type measure_elem_children: list
-    :param columns: The list of columns to retrieve from the optdict XML file
-    :type columns: list
-    :return: the type of measure_element, either 'real', 'code', 'integer', 'logical', if exists
-    :rtype: str
-    """
-
-    measure_type = ""
-
-    if "type" in columns:
-        for child in measure_elem_children:
-            if child.tag in ("real", "code", "integer", "logical"):
-                measure_type = child.tag
-                break
-
-        nomvar_info["type"] = measure_type
-
-
-def __validate_columns_param(columns, allowed_columns):
-    if not isinstance(columns, list) or len(columns) < 1:
-        raise ValueError("Columns must be a list of at least 1 element")
-
-    if "nomvar" in columns:
-        raise ValueError("nomvar must not be in columns")
-
-    invalid_columns = set(columns) - set(allowed_columns)
-
-    if invalid_columns:
-        invalid_columns2 = ", ".join(sorted(invalid_columns))
-        raise ValueError(f"Invalid columns: {invalid_columns2}")
-
-
-def __validate_usages_param(usages, allowed_usages):
-    if not isinstance(usages, list) or len(usages) < 1:
-        raise ValueError("usages must be a list of at least 1 element")
-
-    invalid_usages = set(usages) - set(allowed_usages)
-
-    if invalid_usages:
-        invalid_usages2 = ", ".join(sorted(invalid_usages))
-        raise ValueError(f"Invalid usages: {invalid_usages2}")
-
-
-def __process_ip_definitions(valid_metvars: List[etree.Element], ip_attr: str) -> Dict[str, Dict[str, Any]]:
-    """Process IP definitions (IP1 or IP3) from valid metvars."""
-    ip_metvars = {}
-    for metvar in valid_metvars:
-        nomvar_elem = metvar.find("nomvar")
-        if nomvar_elem is not None and ip_attr in nomvar_elem.attrib:
-            ip_str = nomvar_elem.get(ip_attr)
-            ip_metvars[ip_str] = metvar
-    return ip_metvars
-
-
-def __has_ip_attribute(valid_metvars: List[etree.Element], ip_attr: str) -> bool:
-    """Check if any metvar has the specified IP attribute."""
-    return any(ip_attr in m.find("nomvar").attrib for m in valid_metvars if m.find("nomvar") is not None)
-
-
-def __find_matching_definition(
-    valid_metvars: List[etree.Element], ip_value: Optional[Union[str, int]], ip_attr: str
-) -> Optional[etree.Element]:
-    """Find metvar definition matching the specified IP value."""
-    if ip_value is None:
-        return None
-
-    ip_value_int = int(float(ip_value))
-    for metvar in valid_metvars:
-        nomvar_elem = metvar.find("nomvar")
-        if nomvar_elem is not None:
-            dict_ip = nomvar_elem.get(ip_attr)
-            if dict_ip and int(dict_ip) == ip_value_int:
-                return metvar
-    return None
-
-
-def __get_latest_definition(valid_metvars: List[etree.Element]) -> etree.Element:
-    """Get the most recent metvar definition based on date."""
-    dates = [m.get("date", "") for m in valid_metvars]
-    non_empty_dates = [d for d in dates if d]
-
-    if non_empty_dates:
-        latest_date = max(non_empty_dates)
-        latest_metvars = [m for m in valid_metvars if m.get("date", "") == latest_date]
-        return latest_metvars[0]
-    return valid_metvars[0]
-
-
 def process_metvar(metvar_element: etree.Element) -> Dict[str, Any]:
-    """Process a metvar element from the XML dictionary according to DTD structure"""
+    """Process a metvar element from the XML dictionary according to DTD structure.
+
+    Args:
+        metvar_element (etree.Element): The metvar XML element to process.
+
+    Returns:
+        Dict[str, Any]: Dictionary containing the processed metvar metadata with the following keys:
+            - origin: Origin of the variable
+            - usage: Usage state (default: "current")
+            - pack: Packing information
+            - date: Date of definition
+            - nomvar: Variable name
+            - ip1, ip2, ip3: IP values
+            - level: Level information
+            - kind: Kind of variable
+            - etiket: Etiket value
+            - description_short_en/fr: Short descriptions in English/French
+            - description_long_en/fr: Long descriptions in English/French
+            - measure_type: Type of measurement
+            - units: Units of measurement
+            - precision: Precision for real values
+            - magnitude: Magnitude information
+            - min/max: Range limits
+            - codes: Code definitions for code/logical types
+    """
     record = {}
 
     # Get metvar attributes
@@ -449,7 +314,19 @@ def process_metvar(metvar_element: etree.Element) -> Dict[str, Any]:
 
 
 def process_typvar(typvar_element: etree.Element) -> Dict[str, str]:
-    """Process a typvar element from the XML dictionary according to DTD structure"""
+    """Process a typvar element from the XML dictionary according to DTD structure.
+
+    Args:
+        typvar_element (etree.Element): The typvar XML element to process.
+
+    Returns:
+        Dict[str, str]: Dictionary containing the processed typvar metadata with the following keys:
+            - origin: Origin of the type
+            - usage: Usage state (default: "current")
+            - date: Date of definition
+            - typvar: Type name
+            - description_short_en/fr: Short descriptions in English/French
+    """
     record = {}
 
     # Get typvar attributes
@@ -511,44 +388,16 @@ TYPVAR_SCHEMA = {
 }
 
 
-def __load_parquet_backup(data_dir: str = "data") -> Tuple[Optional[pl.DataFrame], Optional[pl.DataFrame]]:
-    """Load metvar and typvar dataframes from parquet files if they exist.
-
-    Args:
-        data_dir (str): Directory containing the parquet files
-
-    Returns:
-        Tuple[Optional[pl.DataFrame], Optional[pl.DataFrame]]: Tuple of (metvar_df, typvar_df)
-    """
-    try:
-        # First try the specified data directory
-        metvar_path = Path(data_dir) / "metvar_dictionary.parquet"
-        typvar_path = Path(data_dir) / "typvar_dictionary.parquet"
-
-        # If files don't exist in data_dir, try package's data directory
-        if not metvar_path.exists() or not typvar_path.exists():
-            package_dir = Path(__file__).parent
-            package_data_dir = package_dir / "data"
-            metvar_path = package_data_dir / "metvar_dictionary.parquet"
-            typvar_path = package_data_dir / "typvar_dictionary.parquet"
-
-        metvar_df = pl.read_parquet(metvar_path) if metvar_path.exists() else None
-        typvar_df = pl.read_parquet(typvar_path) if typvar_path.exists() else None
-
-        if metvar_df is not None:
-            LOGGER.warning(f"Loaded metvar dataframe from {metvar_path}")
-        if typvar_df is not None:
-            LOGGER.warning(f"Loaded typvar dataframe from {typvar_path}")
-
-        return metvar_df, typvar_df
-
-    except Exception as e:
-        LOGGER.warning(f"Error loading parquet files: {str(e)}")
-        return None, None
-
-
 class CMCDictionary:
-    """Singleton class that caches the XML as Polars DataFrames for faster lookups"""
+    """Singleton class that caches the XML as Polars DataFrames for faster lookups.
+
+    This class implements the Singleton pattern to ensure only one instance exists
+    that caches the operational dictionary data in memory for efficient lookups.
+
+    Attributes:
+        _metvar_df (pl.DataFrame): DataFrame containing metvar metadata
+        _typvar_df (pl.DataFrame): DataFrame containing typvar metadata
+    """
 
     _instance = None
     _initialized = False
@@ -565,13 +414,10 @@ class CMCDictionary:
 
     def _load_dictionary(self):
         """Load and parse the XML dictionary once into Polars DataFrames"""
-        root = globals()["__parse_opt_dict"]()
+        root = globals()["_parse_opt_dict"]()
         if root is None:
-            LOGGER.warning("Failed to get XML root element, attempting to load from parquet backup")
-            self._metvar_df, self._typvar_df = __load_parquet_backup()
-            if self._metvar_df is None and self._typvar_df is None:
-                LOGGER.error("Failed to load from parquet backup")
-            return
+            LOGGER.error("Failed to get XML root element")
+            raise Exception("Failed to get XML root element")
 
         # Process metvars
         metvar_records = []
@@ -782,23 +628,22 @@ _dict_cache = CMCDictionary()
 
 
 def convert_ip(ip: int, p: float, kind: int, mode: int) -> Tuple[int, float, int]:
-    """
-    Convert between IP values and real values with their associated kinds.
+    """Convert between IP values and real values with their associated kinds.
 
     This function handles both encoding (P->IP) and decoding (IP->P) of values
     using various coordinate systems (height, pressure, sigma, etc.).
 
     Args:
-        ip: The coded IP value
-        p: The actual value
-        kind: The type of coordinate (see Kind enum)
-        mode: Direction of conversion (>0 for P->IP, <0 for IP->P)
+        ip (int): The coded IP value
+        p (float): The actual value
+        kind (int): The type of coordinate (see Kind enum)
+        mode (int): Direction of conversion (>0 for P->IP, <0 for IP->P)
 
     Returns:
-        Tuple of (ip, p, kind) where:
-            - ip: The coded IP value
-            - p: The actual value
-            - kind: The coordinate type
+        Tuple[int, float, int]: A tuple containing:
+            - ip (int): The coded IP value
+            - p (float): The actual value
+            - kind (int): The coordinate type
 
     Special Cases:
         1. Old Style Encoding:
@@ -964,17 +809,23 @@ def get_metvar_metadata(
     """Get metadata for one or more metvars with optional IP values.
 
     Args:
-        nomvar: Single nomvar string or sequence of nomvars
-        columns: List of columns to return. If None, returns all available columns.
-        usages: List of usages to consider (default: ["current"])
-        ip1: Optional single value or sequence of IP1 values
-        ip3: Optional single value or sequence of IP3 values
+        nomvar (Union[str, Sequence[str]]): Single nomvar string or sequence of nomvars
+        columns (Optional[List[str]]): List of columns to return. If None, returns all available columns.
+        usages (Optional[List[str]]): List of usages to consider (default: ["current"])
+        ip1 (Optional[Union[str, int, float, Sequence[Union[str, int, float]]]]): Optional single value or sequence of IP1 values
+        ip3 (Optional[Union[str, int, float, Sequence[Union[str, int, float]]]]): Optional single value or sequence of IP3 values
 
     Returns:
-        For single nomvar without IP: Dictionary mapping column names to values
-        For single nomvar with IP: Dictionary mapping IP values to metadata dictionaries
-        For sequence input: Dictionary mapping nomvars to metadata dictionaries
-        Returns None if not found
+        Union[Optional[Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+            - For single nomvar without IP: Dictionary mapping column names to values
+            - For single nomvar with IP: Dictionary mapping IP values to metadata dictionaries
+            - For sequence input: Dictionary mapping nomvars to metadata dictionaries
+            - Returns None if not found
+
+    Raises:
+        TypeError: If nomvar is not a string or sequence
+        ValueError: If columns or usages are invalid
+        ValueError: If sequences provided for nomvar/ip1/ip3 have different lengths
 
     Note:
         - If sequences are provided for nomvar/ip1/ip3, they must all be the same length
@@ -1027,11 +878,11 @@ def get_typvar_metadata(nomtype: str, columns: Optional[List[str]] = None) -> Op
     """Get metadata for a type variable.
 
     Args:
-        nomtype: The type variable to get metadata for
-        columns: List of columns to return. If None, returns all available columns.
+        nomtype (str): The type variable to get metadata for
+        columns (Optional[List[str]]): List of columns to return. If None, returns all available columns.
 
     Returns:
-        Dictionary mapping column names to values, or None if not found
+        Optional[Dict[str, str]]: Dictionary mapping column names to values, or None if not found
 
     Raises:
         ValueError: If columns is invalid

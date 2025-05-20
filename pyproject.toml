@@ -42,9 +42,9 @@ Repository = "https://gitlab.science.gc.ca/CMDS/cmcdict"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cmcdict"]
-include = [
-    "data/**/*",
-]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"cmcdict/data" = "cmcdict/data"
 
 [tool.hatch.version]
 path = "cmcdict/__init__.py"

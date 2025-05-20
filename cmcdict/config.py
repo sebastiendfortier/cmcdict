@@ -1,11 +1,29 @@
-"""Configuration module for CMC dictionary."""
+"""Configuration module for the CMC dictionary.
+
+This module contains enumerations and constant dictionaries used throughout the
+cmcdict package for defining coordinate types, value ranges, and encoding parameters.
+"""
 
 from enum import IntEnum
 from typing import Dict
 
 
 class Kind(IntEnum):
-    """Enumeration of coordinate types."""
+    """Enumeration of coordinate types used in the CMC dictionary.
+
+    This enumeration defines the different kinds of vertical coordinates and other
+    specialized types that can be associated with a meteorological variable.
+
+    Attributes:
+        ABOVE_SEA (int): Coordinate relative to sea level.
+        SIGMA (int): Sigma coordinate.
+        PRESSURE (int): Pressure coordinate.
+        ARBITRARY (int): Arbitrary coordinate or value.
+        ABOVE_GND (int): Coordinate relative to ground level.
+        HYBRID (int): Hybrid coordinate.
+        THETA (int): Theta (potential temperature) coordinate.
+        HOURS (int): Time in hours.
+    """
 
     ABOVE_SEA = 0
     SIGMA = 1

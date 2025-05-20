@@ -14,7 +14,7 @@ build:
   # - Fixing packaging issues (missing files, etc.)
   # - Making build process changes
   # Reset to 0 when you update the version number.
-  number: 1
+  number: 2
   noarch: python
   script:
     - python -m hatchling build
@@ -25,7 +25,6 @@ requirements:
   host:
     - python
     - pip
-    - setuptools
     - wheel
     - hatchling
   run:

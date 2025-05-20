@@ -42,12 +42,29 @@ test-py38: clean
 	@echo "********* Testing package with python 3.8 *********"
 	cd package_tests/environments && $(PIXI_CMD) run -e py38 tests
 
+test-py39: clean
+	@echo "********* Testing package with python 3.9 *********"
+	cd package_tests/environments && $(PIXI_CMD) run -e py39 tests
+
+test-py310: clean
+	@echo "********* Testing package with python 3.10 *********"
+	cd package_tests/environments && $(PIXI_CMD) run -e py310 tests
+
+test-py311: clean
+	@echo "********* Testing package with python 3.11 *********"
+	cd package_tests/environments && $(PIXI_CMD) run -e py311 tests
+
+test-py312: clean
+	@echo "********* Testing package with python 3.12 *********"
+	cd package_tests/environments && $(PIXI_CMD) run -e py312 tests
+
 test-py313: clean
 	@echo "********* Testing package with python 3.13 *********"
 	cd package_tests/environments && $(PIXI_CMD) run -e py313 tests
 
-test-both: test-py38 test-py313
+test-all: test-py38 test-py39 test-py310 test-py311 test-py312 test-py313
 
 # Clean target (if needed)
 clean:
-	scripts/clean.sh
+	pixi clean
+	cd docs && make clean

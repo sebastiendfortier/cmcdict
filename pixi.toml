@@ -22,7 +22,7 @@ cmd = "ruff check --fix cmcdict"
 
 [tasks.format]
 description = "Run format on package"
-cmd = "ruff format cmcdict"
+cmd = "ruff format -v ."
 
 [tasks.build]
 description = "Build package"
