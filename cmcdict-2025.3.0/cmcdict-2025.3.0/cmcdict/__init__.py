@@ -110,8 +110,8 @@ def _find_ops_variable_dictionary() -> Optional[Path]:
             LOGGER.info(f"Found dictionary file at {dict_file}")
             return dict_file
 
-        # Try package's directory as fallback
-        package_data_path = Path(__file__).parent / "dict.xml"
+        # Try package's data directory as fallback
+        package_data_path = Path(__file__).parent / "data" / __VAR_DICT_FILE
 
         if package_data_path.exists():
             LOGGER.info(f"Found dictionary file in package data at {package_data_path}")
